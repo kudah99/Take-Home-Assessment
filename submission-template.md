@@ -1,10 +1,10 @@
 # QA Assessment Submission Template
 
-**Candidate Name**: [Your Name]
+**Candidate Name**: Kudakwashe Chris Chipangura
 
-**Email**: [Your Email]
+**Email**:kcchipangura@gmail.com
 
-**Phone**: [Your Phone Number]
+**Phone**: +263716876033
 
 **Submission Date**: [Date]
 
