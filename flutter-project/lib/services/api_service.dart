@@ -38,7 +38,7 @@ class ApiService {
   // BUG: No timeout handling
   // BUG: No retry logic
   // BUG: No network connectivity check
-  Future<Map<String, dynamic>> _makeRequest(
+  Future<dynamic> _makeRequest(
     String method,
     String endpoint, {
     Map<String, dynamic>? body,
@@ -126,9 +126,7 @@ class ApiService {
     final response = await _makeRequest('GET', '/products');
     // BUG: Assumes response is a list - will crash if it's not
     // BUG: No handling for empty list
-    return (response as List)
-        .map((json) => Product.fromJson(json))
-        .toList();
+    return (response as List).map((json) => Product.fromJson(json)).toList();
   }
 
   Future<Product> getProduct(int id) async {
@@ -153,4 +151,3 @@ class ApiService {
     return Order.fromJson(response);
   }
 }
-
