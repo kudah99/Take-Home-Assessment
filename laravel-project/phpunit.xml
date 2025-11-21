@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         beStrictAboutCoverageMetadata="false"
+         beStrictAboutTestsThatDoNotTestAnything="false">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory suffix="Test.php">./tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory suffix="Test.php">./tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">./app/Http/Controllers</directory>
+            <directory suffix=".php">./app/Models</directory>
+        </include>
+        <exclude>
+            <directory>./app/Console</directory>
+            <directory>./app/Exceptions</directory>
+            <directory>./app/Providers</directory>
+        </exclude>
+    </source>
+
+    <coverage>
+        <report>
+            <html outputDirectory="storage/coverage" />
+            <text outputFile="php://stdout" />
+        </report>
+    </coverage>
+
+    <php>
+        <ini name="display_errors" value="On" />
+        <ini name="error_reporting" value="-1" />
+        <env name="APP_ENV" value="testing" />
+        <env name="APP_KEY" value="base64:4LjLy2Ums7M3s7JM2N4L5N6L7M8L9L" />
+        <env name="DB_CONNECTION" value="sqlite" />
+        <env name="DB_DATABASE" value=":memory:" />
+        <env name="BROADCAST_DRIVER" value="log" />
+        <env name="CACHE_DRIVER" value="array" />
+        <env name="QUEUE_CONNECTION" value="sync" />
+        <env name="SESSION_DRIVER" value="array" />
+        <env name="MAIL_DRIVER" value="array" />
+    </php>
+</phpunit>
