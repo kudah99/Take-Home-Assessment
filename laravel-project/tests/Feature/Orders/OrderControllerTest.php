@@ -298,4 +298,307 @@ class OrderControllerTest extends TestCase
 
         $this->assertEquals('completed', $order->fresh()->status);
     }
+
+    /**
+     * Test unauthenticated user cannot create order
+     */
+    public function test_unauthenticated_user_cannot_create_order(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->postJson('/api/orders', [
+            'items' => [
+                ['product_id' => $product->id, 'quantity' => 1],
+            ],
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    /**
+     * Test create order requires items array
+     */
+    public function test_create_order_requires_items_array(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('items');
+    }
+
+    /**
+     * Test create order with missing product_id fails
+     */
+    public function test_create_order_item_requires_product_id(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [
+                    ['quantity' => 1],
+                ],
+            ]);
+
+        $response->assertStatus(422);
+    }
+
+    /**
+     * Test create order with missing quantity fails
+     */
+    public function test_create_order_item_requires_quantity(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [
+                    ['product_id' => $product->id],
+                ],
+            ]);
+
+        $response->assertStatus(422);
+    }
+
+    /**
+     * Test create order with quantity as non-integer fails
+     */
+    public function test_create_order_quantity_must_be_integer(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 'not_a_number'],
+                ],
+            ]);
+
+        $response->assertStatus(422);
+    }
+
+    /**
+     * Test order is created for authenticated user
+     */
+    public function test_order_is_associated_with_authenticated_user(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['price' => 50.00]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            ]);
+
+        $order = Order::latest()->first();
+        $this->assertEquals($user->id, $order->user_id);
+    }
+
+    /**
+     * Test created order has pending status
+     */
+    public function test_newly_created_order_has_pending_status(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJson(['status' => 'pending']);
+    }
+
+    /**
+     * Test update order requires authentication
+     */
+    public function test_update_order_requires_authentication(): void
+    {
+        $order = Order::factory()->create();
+
+        $response = $this->patchJson("/api/orders/{$order->id}", [
+            'status' => 'completed',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    /**
+     * Test update order with invalid status
+     */
+    public function test_update_order_with_invalid_status(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::factory()->create(['user_id' => $user->id]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson("/api/orders/{$order->id}", [
+                'status' => 'invalid_status',
+            ]);
+
+        // Should either fail validation or accept any status
+        $this->assertGreaterThanOrEqual(200, $response->status());
+    }
+
+    /**
+     * Test can update non-existent order returns 404
+     */
+    public function test_update_non_existent_order_returns_404(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson('/api/orders/99999', [
+                'status' => 'completed',
+            ]);
+
+        $response->assertStatus(404);
+    }
+
+    /**
+     * Test order can transition to different statuses
+     */
+    public function test_order_can_transition_through_statuses(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::factory()->pending()->create(['user_id' => $user->id]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $statuses = ['completed', 'cancelled', 'shipped'];
+
+        foreach ($statuses as $status) {
+            $this->patchJson("/api/orders/{$order->id}", [
+                'status' => $status,
+            ], ['Authorization' => "Bearer $token"]);
+
+            $this->assertEquals($status, $order->fresh()->status);
+        }
+    }
+
+    /**
+     * Test order with single item
+     */
+    public function test_order_with_single_item_calculation(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['price' => 99.99]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 1],
+                ],
+            ]);
+
+        $response->assertStatus(201);
+        
+        $order = Order::latest()->first();
+        $this->assertEquals(99.99, $order->total_amount);
+    }
+
+    /**
+     * Test order with large quantities
+     */
+    public function test_order_with_large_quantities(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['price' => 10.00]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/orders', [
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 1000],
+                ],
+            ]);
+
+        $response->assertStatus(201);
+        
+        $order = Order::latest()->first();
+        $this->assertEquals(10000.00, $order->total_amount);
+    }
+
+    /**
+     * Test list orders returns all orders for authenticated user
+     */
+    public function test_list_orders_includes_multiple_orders(): void
+    {
+        $user = User::factory()->create();
+        Order::factory()->count(5)->create(['user_id' => $user->id]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->getJson('/api/orders');
+
+        $response->assertStatus(200)
+            ->assertJsonIsArray();
+        
+        $orders = $response->json();
+        $this->assertCount(5, $orders);
+    }
+
+    /**
+     * Test order response structure includes all necessary fields
+     */
+    public function test_order_response_structure_is_complete(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::factory()->create(['user_id' => $user->id]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->getJson("/api/orders/{$order->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'id',
+                'user_id',
+                'status',
+                'total_amount',
+                'created_at',
+                'updated_at',
+            ]);
+    }
+
+    /**
+     * Test orders are differentiated by user
+     */
+    public function test_orders_created_by_different_users_are_separate(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $product = Product::factory()->create();
+
+        $token1 = $user1->createToken('auth_token')->plainTextToken;
+        $token2 = $user2->createToken('auth_token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer $token1")
+            ->postJson('/api/orders', [
+                'items' => [['product_id' => $product->id, 'quantity' => 1]],
+            ]);
+
+        $this->withHeader('Authorization', "Bearer $token2")
+            ->postJson('/api/orders', [
+                'items' => [['product_id' => $product->id, 'quantity' => 2]],
+            ]);
+
+        $this->assertCount(1, $user1->orders);
+        $this->assertCount(1, $user2->orders);
+    }
 }

@@ -203,4 +203,325 @@ class ProductControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson(['stock' => 0]);
     }
+
+    /**
+     * Test unauthenticated user cannot create product
+     */
+    public function test_unauthenticated_user_cannot_create_product(): void
+    {
+        $response = $this->postJson('/api/products', [
+            'name' => 'New Product',
+            'price' => 49.99,
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    /**
+     * Test create product requires name field
+     */
+    public function test_create_product_requires_name(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/products', [
+                'description' => 'A test product',
+                'price' => 49.99,
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('name');
+    }
+
+    /**
+     * Test create product with valid data
+     */
+    public function test_create_product_with_all_fields(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/products', [
+                'name' => 'Complete Product',
+                'description' => 'Full description',
+                'price' => 99.99,
+                'stock' => 50,
+                'category' => 'Electronics',
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJson([
+                'name' => 'Complete Product',
+                'description' => 'Full description',
+                'price' => 99.99,
+                'stock' => 50,
+                'category' => 'Electronics',
+            ]);
+    }
+
+    /**
+     * Test product can be created with minimal data
+     */
+    public function test_create_product_with_minimal_data(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/products', [
+                'name' => 'Minimal Product',
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJson(['name' => 'Minimal Product']);
+    }
+
+    /**
+     * Test unauthenticated user cannot update product
+     */
+    public function test_unauthenticated_user_cannot_update_product(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->patchJson("/api/products/{$product->id}", [
+            'name' => 'Updated Name',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    /**
+     * Test update product with partial data
+     */
+    public function test_update_product_with_partial_data(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'name' => 'Original Name',
+            'price' => 50.00,
+        ]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson("/api/products/{$product->id}", [
+                'description' => 'New description',
+            ]);
+
+        $response->assertStatus(200);
+        
+        $updated = $product->fresh();
+        $this->assertEquals('Original Name', $updated->name);
+        $this->assertEquals('New description', $updated->description);
+    }
+
+    /**
+     * Test update product price
+     */
+    public function test_update_product_price(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['price' => 50.00]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson("/api/products/{$product->id}", [
+                'price' => 75.50,
+            ]);
+
+        $this->assertEquals(75.50, $product->fresh()->price);
+    }
+
+    /**
+     * Test update product stock
+     */
+    public function test_update_product_stock(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['stock' => 100]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson("/api/products/{$product->id}", [
+                'stock' => 50,
+            ]);
+
+        $this->assertEquals(50, $product->fresh()->stock);
+    }
+
+    /**
+     * Test update non-existent product returns 404
+     */
+    public function test_update_non_existent_product_returns_404(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson('/api/products/99999', [
+                'name' => 'Updated Name',
+            ]);
+
+        $response->assertStatus(404);
+    }
+
+    /**
+     * Test unauthenticated user cannot delete product
+     */
+    public function test_unauthenticated_user_cannot_delete_product(): void
+    {
+        $product = Product::factory()->create();
+
+        $response = $this->deleteJson("/api/products/{$product->id}");
+
+        $response->assertStatus(401);
+    }
+
+    /**
+     * Test delete non-existent product returns 404
+     */
+    public function test_delete_non_existent_product_returns_404(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->deleteJson('/api/products/99999');
+
+        $response->assertStatus(404);
+    }
+
+    /**
+     * Test delete product removes it from database
+     */
+    public function test_delete_product_removes_from_database(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'name' => 'Product to Delete',
+        ]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer $token")
+            ->deleteJson("/api/products/{$product->id}");
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    }
+
+    /**
+     * Test products list structure
+     */
+    public function test_products_list_has_correct_structure(): void
+    {
+        $user = User::factory()->create();
+        Product::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->getJson('/api/products');
+
+        $response->assertStatus(200)
+            ->assertJsonIsArray();
+
+        $products = $response->json();
+        if (count($products) > 0) {
+            $this->assertArrayHasKey('id', $products[0]);
+            $this->assertArrayHasKey('name', $products[0]);
+        }
+    }
+
+    /**
+     * Test multiple products can be listed
+     */
+    public function test_multiple_products_are_listed(): void
+    {
+        $user = User::factory()->create();
+        Product::factory()->count(10)->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->getJson('/api/products');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(10);
+    }
+
+    /**
+     * Test product can be found by id
+     */
+    public function test_specific_product_retrieval_by_id(): void
+    {
+        $user = User::factory()->create();
+        $product1 = Product::factory()->create(['name' => 'Product 1']);
+        $product2 = Product::factory()->create(['name' => 'Product 2']);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->getJson("/api/products/{$product1->id}");
+
+        $response->assertStatus(200)
+            ->assertJson(['name' => 'Product 1', 'id' => $product1->id]);
+    }
+
+    /**
+     * Test product creation stores in database
+     */
+    public function test_created_product_is_stored_in_database(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/products', [
+                'name' => 'Database Test Product',
+                'price' => 123.45,
+            ]);
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Database Test Product',
+            'price' => 123.45,
+        ]);
+    }
+
+    /**
+     * Test product creation returns created product
+     */
+    public function test_create_product_returns_the_created_product(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->postJson('/api/products', [
+                'name' => 'New Product',
+                'price' => 50.00,
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'id',
+                'name',
+                'price',
+            ]);
+    }
+
+    /**
+     * Test product update returns updated product
+     */
+    public function test_update_product_returns_updated_data(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['name' => 'Old Name']);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->patchJson("/api/products/{$product->id}", [
+                'name' => 'New Name',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['name' => 'New Name']);
+    }
 }
