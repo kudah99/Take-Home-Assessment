@@ -7,28 +7,28 @@ class MockData {
   // User fixtures
   static const Map<String, dynamic> mockUserJson = {
     'id': 1,
-    'name': 'John Doe',
-    'email': 'john@example.com',
+  'name': 'Kudakwashe Chris Chipangura',
+    'email': 'kcchipangura@gmail.com',
     'role': 'customer',
   };
 
   static const Map<String, dynamic> mockUserJsonWithoutRole = {
     'id': 1,
-    'name': 'John Doe',
-    'email': 'john@example.com',
+    'name': 'Kudakwashe Chris Chipangura',
+    'email': 'kcchipangura@gmail.com',
   };
 
   static final User mockUser = User(
     id: 1,
-    name: 'John Doe',
-    email: 'john@example.com',
+    name: 'Kudakwashe Chris Chipangura',
+    email: 'kcchipangura@gmail.com',
     role: 'customer',
   );
 
   static final User mockUserWithoutRole = User(
     id: 1,
-    name: 'John Doe',
-    email: 'john@example.com',
+    name: 'Kudakwashe Chris Chipangura',
+    email: 'kcchipangura@gmail.com',
   );
 
   // Product fixtures

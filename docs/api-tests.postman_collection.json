@@ -1,0 +1,816 @@
+{
+	"info": {
+		"_postman_id": "588d5eef-a159-4890-b462-cab007bbe709",
+		"name": "End-to-End Tests",
+		"description": "> This collection features end-to-end tests that ensure the Intergalactic Bank API components function in an expected sequence. Check out the [Functional testing collection](https://www.postman.com/templates/f26ad070-d626-4d75-b151-7cbf1a48ed11/Functional-testing) and [Integration testing collection](https://www.postman.com/templates/6f788c17-067a-4074-a528-d07df1df9529/Integration-testing-%23example) for other test cases for this API. \n  \n\n## **🪐 Get started**\n\nThe fictional Intergalactic Bank Services team is responsible for testing the end-to-end workflows in this collection. You can use this collection to validate specific workflows for your team or figure out ways to increase your test coverage and make your applications more resilient.\n\nTo test the Intergalactic Bank API, you can:\n\n1. **Review tests and scripts:** Check out the [tests](https://learning.postman.com/docs/writing-scripts/test-scripts/) in the Scripts tab of a collection, folder, or request. You’ll also find additional steps in the Pre-request Script, such as for passing data between requests or building up POST request payloads.\n    \n2. **Run tests:** To run the collection, select Run collection from the collection menu. If you are interested in testing one of the use cases, select Run folder from the use case folder menu. Keep in mind that many of these tests contain logic that passes information between requests, and they are meant to be run in order from top to bottom. If you send the requests manually or out of order, your results may vary.\n    \n3. **Review test results:** Many of the test cases contain error messages to help debug service errors. If you’re using this collection as a pre-merge check, ensure that all tests are passing before submitting (and no, deleting the failing test cases isn’t an option 😉).\n    \n\nCheck out the additional sections below or select View complete documentation. For context-sensitive help with a folder or request, look for the documentation icon.\n\n## 🧑‍💻How your team can use this collection\n\n- **Add a mock server to speed up development:** Adding functionality to this service? Since this collection has example responses, you can add a mock server that will return the expected results. Start writing tests against the mock, and once your additions are live, you can swap out the URLs and have a live test suite.\n    \n- **Integrate tests with your CI/CD pipeline:** This comprehensive test suite is a great addition to your existing CI/CD pipeline. Generate the Postman CLI command from the Collection Runner and add this step to your existing checks each time you make a commit affecting this service.\n    \n- **Add a monitor:** If your team is contributing to or relying on this service, it’s a good idea to keep tabs on the status. Adding a monitor to this collection can give you confidence that the service is up and running and alert you to any breaking changes that may have occurred.\n    \n\n## 🔍 What we’re testing\n\n- A very common workflow is the transfer of funds between accounts. We have two scenarios: one which creates all resources and successfully transfers funds, and one which tries the transfer with insufficient funds.\n    \n- During these workflows, we are testing for data correctness, data types, and that data is successfully passed through the system during creation and retrieval.\n    \n\n## 🔒A note on authorization\n\nThis API uses an API key-based authorization. In this collection, we set the authorization at the collection level and generate a new API Key for each test run.\n\n## 👀 View and share run results\n\nInterested in seeing previous run results? We’re happy to share, and have a few ways for you to stay in the loop:\n\n- **Runs tab:** View past collection runs in the `Runs` tab of this collection. Here, you can see the results of past runs, including who ran them and whether it was via the Collection Runner or the CLI. You can also share individual run reports from this page.\n    \n- **Monitors:** If you have a monitor set up for this collection, you can see historical run information when you select the Monitors tab in the left sidebar. You can also have the results sent to Slack or other services when you set up a corresponding integration.\n    \n\n### 🤝Increase test coverage\n\nThe Intergalactic Bank Services team wants your team to have everything they need to successfully test our services with their applications. Is your team utilizing this API in a use case not represented here? Reach out to us on our internal Slack by tagging `@bank-services`. Or add an [inline comment](https://learning.postman.com/docs/collaborating-in-postman/working-with-your-team/discussing-your-work/) to this collection with your test case suggestions.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31369947",
+		"_collection_link": "https://qa-team-3637.postman.co/workspace/LadsAfrica-QA-Assessment~3fbecf47-457d-4090-9f6d-cc9c1a9aad7c/collection/31369947-588d5eef-a159-4890-b462-cab007bbe709?action=share&source=collection_link&creator=31369947"
+	},
+	"item": [
+		{
+			"name": "Authentication and Accounts Tests",
+			"item": [
+				{
+					"name": "[1] Create A New Account (With Valid details)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Should have a valid JSON format response body\", function () {",
+									"    pm.expect(response).to.not.be.undefined;",
+									"});",
+									"",
+									"pm.test(\"Should have the required 'account' object in the response\", function () {",
+									"    pm.expect(response).to.be.an('object');",
+									"    pm.expect(response.account).to.exist;",
+									"});",
+									"",
+									"pm.test(\"Should have the `id` property in the account object and is a non-negative integer\", function () {",
+									"  pm.expect(response.account.id).to.be.a('number').and.to.be.at.least(0);",
+									"});",
+									"",
+									"// Only set the variable if the response is successful ",
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set(\"e2e_user_name_from\", JSON.parse(pm.request.body.raw).owner);",
+									"    pm.collectionVariables.set(\"e2e_user_account_id_from\", response.account.id)",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate the payload data for the create user request",
+									"",
+									"let fullName = `${pm.variables.replaceIn(\"{{$randomFirstName}}\")} ${pm.variables.replaceIn(\"{{$randomLastName}}\")}`;",
+									"",
+									"let payload = {",
+									"    \"owner\": `${fullName} - FromAccount`,",
+									"    \"balance\": 50,",
+									"    \"currency\": \"COSMIC_COINS\"",
+									"}",
+									"",
+									"// Store the payload in a runtime-only variable ",
+									"pm.variables.set('payload', JSON.stringify(payload));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    'email':'kcchipangura@gmail.com',\r\n    'password':'vd7uHW5M',\r\n    'name':'Kudakwashe chris Chipangura'\r\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
+						},
+						"description": "Generates a new account (`fromAccount`), that the funds will be transferred from, and saves the following information if the request is successful:\n\n- Account owner from the request body (saved as collection variable `e2e_user_name_from`)\n- Account id from the response body (saved as collection variable `e2e_user_account_id_from`)"
+					},
+					"response": []
+				},
+				{
+					"name": "[2] Create A New Account (With Invalid details)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"",
+									"pm.test(\"Should have a valid JSON format response body\", function () {",
+									"    pm.expect(response).to.not.be.undefined;",
+									"});",
+									"",
+									"pm.test(\"Should have the required 'account' object in the response\", function () {",
+									"    pm.expect(response).to.be.an('object');",
+									"    pm.expect(response.account).to.exist;",
+									"});",
+									"",
+									"pm.test(\"Should have the `id` property in the account object and is a non-negative integer\", function () {",
+									"    pm.expect(response).to.be.an('object');",
+									"    pm.expect(response.account.id).to.be.a('number').and.to.be.at.least(0);",
+									"});",
+									"",
+									"// Only set the variable if the response is successful ",
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set(\"e2e_user_name_to\", JSON.parse(pm.request.body.raw).owner);",
+									"    pm.collectionVariables.set(\"e2e_user_account_id_to\", response.account.id)",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate the payload data for the create user request",
+									"",
+									"let fullName = `${pm.variables.replaceIn(\"{{$randomFirstName}}\")} ${pm.variables.replaceIn(\"{{$randomLastName}}\")}`;",
+									"",
+									"let payload = {",
+									"    \"owner\": `${fullName} - ToAccount`,",
+									"    \"balance\": 0,",
+									"    \"currency\": \"COSMIC_COINS\"",
+									"}",
+									"",
+									"// Store the payload in a runtime-only variable ",
+									"pm.variables.set('payload', JSON.stringify(payload));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{payload}}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/accounts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts"
+							]
+						},
+						"description": "Generates another new account (`toAccount`), that the funds will be transferred to, and saves the following information if the request is successful:\n\n- Account owner from the request body (saved as collection variable `e2e_user_name_to`)\n- Account id from the response body (saved as collection variable `e2e_user_account_id_to`)"
+					},
+					"response": []
+				},
+				{
+					"name": "[4] Login Into Account (Regular Users)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Should display a successful transaction message\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "api-key",
+								"value": "1234"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromAccountId\": {{e2e_user_account_id_from}},\n    \"toAccountId\": {{e2e_user_account_id_to}},\n    \"amount\": 20,\n    \"currency\": \"COSMIC_COINS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transactions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions"
+							]
+						},
+						"description": "Create a new transaction between the `fromAccount` and `toAccount`"
+					},
+					"response": []
+				},
+				{
+					"name": "[5] Login Into Account (Admin Users)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Should display a successful transaction message\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "api-key",
+								"value": "1234"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromAccountId\": {{e2e_user_account_id_from}},\n    \"toAccountId\": {{e2e_user_account_id_to}},\n    \"amount\": 20,\n    \"currency\": \"COSMIC_COINS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transactions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions"
+							]
+						},
+						"description": "Create a new transaction between the `fromAccount` and `toAccount`"
+					},
+					"response": []
+				},
+				{
+					"name": "[6] Account LogOut",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Should display a successful transaction message\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "api-key",
+								"value": "1234"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromAccountId\": {{e2e_user_account_id_from}},\n    \"toAccountId\": {{e2e_user_account_id_to}},\n    \"amount\": 20,\n    \"currency\": \"COSMIC_COINS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transactions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions"
+							]
+						},
+						"description": "Create a new transaction between the `fromAccount` and `toAccount`"
+					},
+					"response": []
+				},
+				{
+					"name": "[7] Get User Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Should display a successful transaction message\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "api-key",
+								"value": "1234"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transactions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"transactions"
+							]
+						},
+						"description": "Create a new transaction between the `fromAccount` and `toAccount`"
+					},
+					"response": []
+				}
+			],
+			"description": "This folder tests a commonly used workflow of creating new accounts and transferring funds between the two.\n\nBecause we expect all requests to succeed in this workflow, we have a **status check test** in the **folder-level Scripts tab**.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"//all requests in this folder should be valid",
+							"pm.test(\"Folder-level status check\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders Tests",
+			"item": [
+				{
+					"name": "Get Orders List",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();",
+									"",
+									"pm.test(\"Status check\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Should return a object\", function () {",
+									"    pm.expect(response, 'The response is not an object').to.be.an('object');",
+									"});",
+									"",
+									"pm.test(\"Should contain the `apiKey` property in the response\", function () {",
+									"    pm.expect(response, 'The response does not contain the property').to.haveOwnProperty('apiKey');",
+									"});",
+									"",
+									"pm.test(\"Should return a string for the `apiKey` property\", function () {",
+									"    pm.expect(response.apiKey, 'The property is not a string').to.be.a('string');",
+									"});",
+									"",
+									"// Only set the variable if the response is successful ",
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('apiKey', response.apiKey);",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth"
+							]
+						},
+						"description": "This request generates a new API Key, and saves it to the collection variables if the request was successful."
+					},
+					"response": []
+				},
+				{
+					"name": "Order Update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    'product': 1,\r\n    'quantity':2\r\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create new Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    'product': 1,\r\n    'quantity':1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Note that because we are expecting one of the requests in this folder to be invalid, we are moving the status check from the folder level (as we did in the previous folder) to the request level.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Products Test",
+			"item": [
+				{
+					"name": "Get Products List",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Products By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/{{id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{Token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    'name': 'test product',\r\n    'price': 6.99\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users Tests",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{Token}}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://template.postman-echo.com"
+		},
+		{
+			"key": "apiKey",
+			"value": "OMpqVWAH.UC80wyXTtPwhDgAUdCTx6"
+		}
+	]
+}
