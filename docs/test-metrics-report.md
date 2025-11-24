@@ -1,8 +1,9 @@
-# Test Metrics Report
+# Test Execution Report
+ ![LADS Africa Logo](https://ladsafrica.co.zw/wp-content/uploads/2021/11/imageedit_5_3463869995.png) 
+---
 
-**QA Assessment - Take-Home Project**  
 **BY:** Kudakwashe Chris Chipangura  
-**Date:** November 24, 2025
+
 
 ---
 
@@ -760,44 +761,6 @@ The assessment demonstrates a **mixed testing approach** with strong unit and mo
 ❌ **Security Issue:** Passwords not being hashed in Laravel  
 ❌ **Integration Testing:** Weak integration test coverage in both projects  
 
-### Overall Test Effectiveness: **65/100**
 
----
 
-## Appendix A: Test Environment Details
 
-**Test Execution Environment:**
-
-```
-Laravel Backend:
-• PHP Version: 8.2.12
-• PHPUnit Version: 10.5.58
-• Database: SQLite (in-memory for tests)
-• Execution Time: 470.82 seconds (7.85 minutes)
-
-Flutter Mobile:
-• Dart SDK: Version 3.1.0+
-• Flutter Version: 3.13.0+
-• Test Framework: flutter_test
-• Execution Time: 145.30 seconds (2.42 minutes)
-```
-
----
-
-## Appendix B: Glossary
-
-- **LOC:** Lines of Code
-- **TLOC:** Test Lines of Code
-- **CRAP:** Change Risk Anti-Patterns Index
-- **N+1:** Database query anti-pattern causing excessive queries
-- **Coverage:** Percentage of code executed by tests
-- **Pass Rate:** Percentage of tests that pass successfully
-- **Defect Density:** Number of defects per 100 lines of code
-- **Test Effectiveness:** Ability of tests to catch bugs and prevent regressions
-
----
-
-**Report Generated:** November 24, 2025  
-**Repository:** Take-Home-Assessment  
-**Branch:** kuda-chipangura-qa-assessment  
-**Reviewer:** Kudakwashe Chris Chipangura
