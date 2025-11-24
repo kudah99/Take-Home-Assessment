@@ -92,7 +92,7 @@ void main() {
 
     testWidgets('ProductsScreen takes user parameter correctly',
         (WidgetTester tester) async {
-      const user = MockData.mockUser;
+      final user = MockData.mockUser;
 
       await TestUtils.pumpWidgetWithMaterial(
         tester,

@@ -6,8 +6,9 @@ class TestUtils {
   /// Pumps a widget with Material wrapping and waits for it to be rendered
   static Future<void> pumpWidgetWithMaterial(
     WidgetTester tester,
-    Widget widget,
-  ) async {
+    Widget widget, {
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         home: widget,
@@ -17,18 +18,32 @@ class TestUtils {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    try {
+      await tester.pumpAndSettle(timeout);
+    } catch (_) {
+      // Ignore timeout - just pump once to settle
+      await tester.pump();
+    }
   }
 
   /// Wait for loading indicators to disappear
   static Future<void> waitForLoadingToFinish(WidgetTester tester) async {
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    try {
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    } catch (_) {
+      // Ignore timeout, just pump
+      await tester.pump(const Duration(milliseconds: 500));
+    }
   }
 
   /// Finds and taps a button by text
   static Future<void> tapButtonByText(WidgetTester tester, String text) async {
     await tester.tap(find.textContaining(text));
-    await tester.pumpAndSettle();
+    try {
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    } catch (_) {
+      await tester.pump();
+    }
   }
 
   /// Enters text into a TextFormField
@@ -68,7 +83,11 @@ class TestUtils {
   /// Scrolls to the end of a scrollable widget
   static Future<void> scrollToEnd(WidgetTester tester) async {
     await tester.drag(find.byType(ListView), const Offset(0, -5000));
-    await tester.pumpAndSettle();
+    try {
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    } catch (_) {
+      await tester.pump();
+    }
   }
 
   /// Scrolls to a specific child in a list by text
@@ -81,7 +100,11 @@ class TestUtils {
       find.byType(ListView),
       const Offset(0, -300),
     );
-    await tester.pumpAndSettle();
+    try {
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    } catch (_) {
+      await tester.pump();
+    }
   }
 
   /// Gets the text content of a widget

@@ -47,6 +47,17 @@ $app->singleton(
 
 /*
 |--------------------------------------------------------------------------
+| Register Service Providers
+|--------------------------------------------------------------------------
+|
+| Here we will register all the service providers for our application.
+|
+*/
+
+$app->register(App\Providers\RouteServiceProvider::class);
+
+/*
+|--------------------------------------------------------------------------
 | Return The Application
 |--------------------------------------------------------------------------
 |

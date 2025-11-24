@@ -1,7 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
-
-typedef Encoding = String;
+import 'dart:convert';
 
 /// Mock HTTP client for testing API calls
 class MockHttpClient implements http.Client {

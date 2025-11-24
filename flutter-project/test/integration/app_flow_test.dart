@@ -104,7 +104,7 @@ void main() {
 
       final passwordField = find.byType(TextFormField).last;
       final TextField passwordWidget = tester.widget(
-          find.descendant(of: passwordField, of: find.byType(TextField)));
+          find.descendant(of: passwordField, matching: find.byType(TextField)));
 
       expect(passwordWidget.obscureText, true);
     });
