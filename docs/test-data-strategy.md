@@ -1,5 +1,8 @@
 # Test Data Management Strategy
+ ![LADS Africa Logo](https://ladsafrica.co.zw/wp-content/uploads/2021/11/imageedit_5_3463869995.png) 
+---
 
+**Prepaid BY:** Kudakwashe Chris Chipangura  
 ## Overview
 
 This document outlines the test data management strategy for the QA Assessment Application, covering test data organization, creation methodologies, and setup/teardown procedures across all testing layers (unit, widget, integration, and end-to-end testing).
@@ -114,29 +117,8 @@ This document outlines the test data management strategy for the QA Assessment A
 }
 ```
 
-### 2.3 UI Test Data
 
-#### Form Input Test Cases
 
-```dart
-const testData = {
-  'valid_inputs': {
-    'email': 'test@example.com',
-    'password': 'SecurePass123!',
-    'phone': '+1234567890',
-  },
-  'invalid_inputs': {
-    'email': ['invalid-email', '', '@example.com'],
-    'password': ['123', 'nouppercase', 'NOLOWERCASE'],
-    'phone': ['abc', '123', '+'],
-  },
-  'boundary_inputs': {
-    'email': 'a@b.c',
-    'password': 'aB1!',
-    'phone': '+1',
-  }
-};
-```
 
 ### 2.4 Database Test Data
 
@@ -629,15 +611,3 @@ When updating test data:
 
 ---
 
-## 10. References
-
-- [Flutter Testing Documentation](https://flutter.dev/docs/testing)
-- [Laravel Testing Documentation](https://laravel.com/docs/testing)
-- [Postman Testing Documentation](https://learning.postman.com/docs/writing-scripts/test-scripts/)
-- [Test Data Management Best Practices](https://testautomationu.applitools.com/)
-
----
-
-**Last Updated**: November 24, 2025  
-**Owner**: QA Assessment Team  
-**Status**: Active
