@@ -6,9 +6,9 @@
 
 **Phone**: +263716876033
 
-**Submission Date**: [Date]
+**Submission Date**: 11 Nov 2025
 
-**GitHub/GitLab Repository URL**: [Repository URL]
+**GitHub/GitLab Repository URL**: https://github.com/kudah99/Take-Home-Assessment/
 
 
 
