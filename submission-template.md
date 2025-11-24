@@ -88,7 +88,7 @@ Check off each item as you complete it:
 
 ### Test Coverage
 
-- **Laravel Backend Coverage**: 36.7%
+- **Laravel Backend Coverage**: 82.7%
 - **Flutter App Coverage**: 85%
 - **Overall Coverage**: 60.85%
 
